@@ -56,7 +56,14 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         try {
-            String message = ((ByteBuf) msg).toString(CharsetUtil.UTF_8);
+
+            String message;
+
+            if(msg instanceof String) {
+                message = (String) msg;
+            }else{
+                throw new IllegalArgumentException("Chat Handler requires a String as input");
+            }
 
             int messageIntention = getIntentionFromMessage(message);
             handleMessage(message, messageIntention, ctx);

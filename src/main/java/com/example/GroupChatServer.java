@@ -17,6 +17,9 @@ public class GroupChatServer {
     // Log4j
     private static final Logger logger = LogManager.getRootLogger();
 
+    // Log Handler
+    private static final LogHandler logHandler = new LogHandler();
+
     private int port;
 
     public GroupChatServer(int port) {
@@ -34,6 +37,7 @@ public class GroupChatServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addFirst(logHandler);
                             ch.pipeline().addLast(new ChatHandler(groupChatService));
                         }
                     })
