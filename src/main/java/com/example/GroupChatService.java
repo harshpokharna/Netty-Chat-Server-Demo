@@ -7,31 +7,28 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by harsh on 30/05/16.
  */
-public class ChatService {
+public class GroupChatService {
 
-    private static ChatService instance;
+    private static GroupChatService instance;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
     private ChannelGroup activeChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    public static ChatService getInstance() {
+    public static GroupChatService getInstance() {
         if (instance != null) {
             return instance;
         } else {
-            instance = new ChatService(new NioEventLoopGroup(), new NioEventLoopGroup());
+            instance = new GroupChatService(new NioEventLoopGroup(), new NioEventLoopGroup());
             return instance;
         }
     }
 
-    private ChatService(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    private GroupChatService(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         this.bossGroup = bossGroup;
         this.workerGroup = workerGroup;
     }

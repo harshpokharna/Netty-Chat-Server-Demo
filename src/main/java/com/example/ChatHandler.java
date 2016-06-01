@@ -7,42 +7,49 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by harsh on 30/05/16.
  */
 public class ChatHandler extends ChannelInboundHandlerAdapter {
 
+    // Constants
     private static final int INTENTION_JOIN_ROOM = 0;
     private static final int INTENTION_LEAVE_ROOM = 1;
     private static final int INTENTION_CHAT = 2;
-
     private static final String LEAVE_ROOM = "leave:";
     private static final String JOIN_ROOM = "join:";
 
+    // Log4j
+    private static final Logger logger = LogManager.getLogger();
+
     private boolean isRoomJoined;
     public String roomName;
-    private ChatService chatService;
+    private GroupChatService groupChatService;
 
-    public ChatHandler(ChatService chatService) {
+    public ChatHandler(GroupChatService groupChatService) {
         super();
-        this.chatService = chatService;
+        this.groupChatService = groupChatService;
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        System.out.println("Exception ---- " + cause.getMessage());
+        logger.error("Exception - " + cause.getMessage());
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+
+        logger.info("Channel Registered -- Chat Handler");
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
 
-        chatService.removeChannel(ctx.channel());
+        groupChatService.removeChannel(ctx.channel());
     }
 
     @Override
@@ -74,7 +81,7 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
         ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
-        ChannelGroup channelGroup = chatService.getActiveChannelContainers();
+        ChannelGroup channelGroup = groupChatService.getActiveChannelContainers();
 
         for (Channel ch : channelGroup) {
             if (ch.id() != channel.id()) {
@@ -126,7 +133,7 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
                 isRoomJoined = true;
                 roomName = message.substring(5);
 
-                chatService.addChannel(ctx.channel());
+                groupChatService.addChannel(ctx.channel());
                 writeMessageToSelf(roomName + " joined!", ctx.channel());
                 writeChatMessageToOtherChannels(ctx.channel(), ctx.channel().id().asShortText() + " has joined the room!");
             }

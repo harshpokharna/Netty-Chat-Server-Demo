@@ -27,5 +27,12 @@
           <artifactId>netty-all</artifactId>
           <version>4.1.0.Final</version>
       </dependency>
+
+      <!-- http://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+      <dependency>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId>
+          <version>2.6</version>
+      </dependency>
   </dependencies>
 </project>
