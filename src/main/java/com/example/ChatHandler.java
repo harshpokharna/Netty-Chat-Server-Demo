@@ -49,12 +49,14 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
 
+        logger.info("Channel UnRegistered -- Chat Handler");
         groupChatService.removeChannel(ctx.channel());
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
+        logger.info("Channel Read -- Chat Handler");
         try {
 
             String message;

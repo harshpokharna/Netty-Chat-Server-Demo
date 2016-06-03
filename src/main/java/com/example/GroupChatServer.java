@@ -20,6 +20,9 @@ public class GroupChatServer {
     // Log Handler
     private static final LogHandler logHandler = new LogHandler();
 
+    // MessageDecoderHandler
+    private static final MessageDecoderHandler messageDecoderHandler = new MessageDecoderHandler();
+
     private int port;
 
     public GroupChatServer(int port) {
@@ -38,6 +41,7 @@ public class GroupChatServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addFirst(logHandler);
+                            ch.pipeline().addLast(messageDecoderHandler);
                             ch.pipeline().addLast(new ChatHandler(groupChatService));
                         }
                     })

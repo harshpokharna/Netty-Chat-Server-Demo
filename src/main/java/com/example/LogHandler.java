@@ -47,11 +47,8 @@ public class LogHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
-            String message = ((ByteBuf) msg).toString(CharsetUtil.UTF_8);
-
-            logger.info("Log Handler Channel Read with message - " + message);
-            logger.info("Message Recd - " + message);
-            ctx.fireChannelRead(message);
+            logger.info("Message Recd in Log handler ");
+            ctx.fireChannelRead(msg);
 
         } finally {
         }
