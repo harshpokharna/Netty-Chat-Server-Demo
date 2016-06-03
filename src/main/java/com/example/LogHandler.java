@@ -26,28 +26,18 @@ public class LogHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
-        logger.info("Log Handler Channel Registered");
+        logger.info("Log Handler ChannelRegistered");
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Channel UnRegistered");
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Channel Active");
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Channel InActive");
+        logger.info("Log Handler ChannelUnRegistered");
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
-            logger.info("Message Recd in Log handler ");
+            logger.info("Log handler ChannelRead");
             ctx.fireChannelRead(msg);
 
         } finally {
@@ -55,32 +45,7 @@ public class LogHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Channel Read Complete");
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        logger.info("Log Handler Channel UserEventTriggered");
-    }
-
-    @Override
-    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Channel Writability Changed");
-    }
-
-    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.getCause().printStackTrace();
-    }
-
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Added");
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler Removed");
     }
 }

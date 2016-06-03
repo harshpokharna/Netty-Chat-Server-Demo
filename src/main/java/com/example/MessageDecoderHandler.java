@@ -26,12 +26,12 @@ public class MessageDecoderHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
-        logger.info("MessageDecoderHandler Channel Registered");
+        logger.info("MessageDecoderHandler ChannelRegistered");
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.info("MessageDecoderHandler Channel UnRegistered");
+        logger.info("MessageDecoderHandler ChannelUnRegistered");
     }
 
     @Override
@@ -49,6 +49,6 @@ public class MessageDecoderHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
+        cause.getCause().printStackTrace();
     }
 }

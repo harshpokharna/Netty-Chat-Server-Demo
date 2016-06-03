@@ -5,7 +5,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,32 +37,33 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
         logger.error("Exception - " + cause.getMessage());
+        cause.getCause().printStackTrace();
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
-        logger.info("Channel Registered -- Chat Handler");
+        logger.info("Chat Handler ChannelRegistered");
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
 
-        logger.info("Channel UnRegistered -- Chat Handler");
+        logger.info("Chat Handler ChannelUnregistered");
         groupChatService.removeChannel(ctx.channel());
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        logger.info("Channel Read -- Chat Handler");
+        logger.info("Chat Handler ChannelRead");
         try {
 
             String message;
 
-            if(msg instanceof String) {
+            if (msg instanceof String) {
                 message = (String) msg;
-            }else{
+            } else {
                 throw new IllegalArgumentException("Chat Handler requires a String as input");
             }
 
@@ -76,8 +76,9 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void writeChatMessageToSelf(Channel channel, String message) {
-
+        logger.debug("ChatHandler writeCHatMessageToSelf");
         message = "[ME] --- " + message;
+
         ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
@@ -85,8 +86,9 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void writeChatMessageToOtherChannels(Channel channel, String message) {
-
+        logger.debug("ChatHandler writeMessageToOtherChannels");
         message = "[" + channel.id().asShortText() + "] --- " + message;
+
         ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
@@ -103,6 +105,8 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void writeMessageToSelf(String message, Channel channel) {
+        logger.debug("ChatHandler writeMessageToSelf");
+
         ByteBuf byteBuf = channel.alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 

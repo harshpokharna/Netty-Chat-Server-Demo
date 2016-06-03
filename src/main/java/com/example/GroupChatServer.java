@@ -43,6 +43,7 @@ public class GroupChatServer {
                             ch.pipeline().addFirst(logHandler);
                             ch.pipeline().addLast(messageDecoderHandler);
                             ch.pipeline().addLast(new ChatHandler(groupChatService));
+//                            ch.pipeline().addLast(new OutboundHandler());
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)
