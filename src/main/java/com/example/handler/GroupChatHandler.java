@@ -1,18 +1,21 @@
-package com.example;
+package com.example.handler;
 
+import com.example.service.GroupChatService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.internal.ConcurrentSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
  * Created by harsh on 30/05/16.
  */
-public class ChatHandler extends ChannelInboundHandlerAdapter {
+public class GroupChatHandler extends ChannelInboundHandlerAdapter implements MessageListener {
 
     // Constants
     private static final int INTENTION_JOIN_ROOM = 0;
@@ -28,7 +31,9 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     public String roomName;
     private GroupChatService groupChatService;
 
-    public ChatHandler(GroupChatService groupChatService) {
+    private ChannelHandlerContext ctx;
+
+    public GroupChatHandler(GroupChatService groupChatService) {
         super();
         this.groupChatService = groupChatService;
     }
@@ -43,6 +48,7 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
+        this.ctx = ctx;
         logger.info("Chat Handler ChannelRegistered");
     }
 
@@ -50,7 +56,9 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
 
         logger.info("Chat Handler ChannelUnregistered");
-        groupChatService.removeChannel(ctx.channel());
+        if(roomName!= null) {
+            groupChatService.removeChannelHandler(this, roomName);
+        }
     }
 
     @Override
@@ -75,80 +83,82 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void writeChatMessageToSelf(Channel channel, String message) {
-        logger.debug("ChatHandler writeCHatMessageToSelf");
+    private void writeChatMessageToSelf(ChannelHandlerContext ctx, String message) {
+        logger.debug("GroupChatHandler writeCHatMessageToSelf");
         message = "[ME] --- " + message;
 
-        ByteBuf byteBuf = channel.alloc().buffer();
+        ByteBuf byteBuf = ctx.channel().alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
-        channel.writeAndFlush(byteBuf);
+        ctx.writeAndFlush(message);
     }
 
-    private void writeChatMessageToOtherChannels(Channel channel, String message) {
-        logger.debug("ChatHandler writeMessageToOtherChannels");
-        message = "[" + channel.id().asShortText() + "] --- " + message;
+    private void writeChatMessageToOtherChannels(ChannelHandlerContext ctx, String message) {
+        logger.debug("GroupChatHandler writeMessageToOtherChannels");
+        message = "[" + ctx.channel().id().asShortText() + "] --- " + message;
 
-        ByteBuf byteBuf = channel.alloc().buffer();
+        ByteBuf byteBuf = ctx.channel().alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
-        ChannelGroup channelGroup = groupChatService.getActiveChannelContainers();
+        ConcurrentSet<MessageListener> messageListeners = new ConcurrentSet<MessageListener>();
 
-        for (Channel ch : channelGroup) {
-            if (ch.id() != channel.id()) {
-                String handlerRoomName = ((ChatHandler) ch.pipeline().last()).roomName;
-                if (handlerRoomName.equals(roomName)) {
-                    ch.writeAndFlush(byteBuf);
-                }
-            }
+        if(roomName!= null){
+
+            messageListeners = groupChatService.getActiveChannelHandlers(roomName);
+        }
+
+        for (MessageListener messageListener : messageListeners) {
+
+            messageListener.onMessageReceived(ctx.channel().id(), message);
         }
     }
 
-    private void writeMessageToSelf(String message, Channel channel) {
-        logger.debug("ChatHandler writeMessageToSelf");
+    private void writeMessageToSelf(String message, ChannelHandlerContext ctx) {
+        logger.debug("GroupChatHandler writeMessageToSelf");
 
-        ByteBuf byteBuf = channel.alloc().buffer();
+        ByteBuf byteBuf = ctx.channel().alloc().buffer();
         byteBuf.writeBytes(message.getBytes());
 
-        channel.writeAndFlush(byteBuf);
+        ctx.writeAndFlush(message);
+
     }
 
     private void handleMessage(String message, int messageIntention, ChannelHandlerContext ctx) {
 
         if (isRoomJoined) {
             if (messageIntention == INTENTION_JOIN_ROOM) {
-                writeMessageToSelf("Please leave the room first!", ctx.channel());
+                writeMessageToSelf("Please leave the room first!", ctx);
 
             } else if (messageIntention == INTENTION_LEAVE_ROOM) {
                 if (message.substring(6).equals(roomName)) {
                     isRoomJoined = false;
-                    writeMessageToSelf(roomName + " left!", ctx.channel());
-                    writeChatMessageToOtherChannels(ctx.channel(), ctx.channel().id().asShortText() + " has left the room!");
+                    writeMessageToSelf(roomName + " left!", ctx);
+                    writeChatMessageToOtherChannels(ctx, ctx.channel().id().asShortText() + " has left the room!");
                     ctx.close();
 
                 } else {
-                    writeMessageToSelf("Invalid request", ctx.channel());
+                    writeMessageToSelf("Invalid request", ctx);
                 }
 
             } else if (messageIntention == INTENTION_CHAT) {
-                writeChatMessageToOtherChannels(ctx.channel(), message);
-                writeChatMessageToSelf(ctx.channel(), message);
+                writeChatMessageToOtherChannels(ctx, message);
+                writeChatMessageToSelf(ctx, message);
             }
 
         } else {
             if (messageIntention == INTENTION_LEAVE_ROOM) {
-                writeMessageToSelf("You should join a room first!", ctx.channel());
+                writeMessageToSelf("You should join a room first!", ctx);
 
             } else if (messageIntention == INTENTION_CHAT) {
-                writeMessageToSelf("You should join a room first!", ctx.channel());
+                writeMessageToSelf("You should join a room first!", ctx);
 
             } else if (messageIntention == INTENTION_JOIN_ROOM) {
                 isRoomJoined = true;
                 roomName = message.substring(5);
 
-                groupChatService.addChannel(ctx.channel());
-                writeMessageToSelf(roomName + " joined!", ctx.channel());
-                writeChatMessageToOtherChannels(ctx.channel(), ctx.channel().id().asShortText() + " has joined the room!");
+                groupChatService.addChannelHandler(this, roomName);
+                writeMessageToSelf(roomName + " joined!", ctx);
+                writeChatMessageToOtherChannels(ctx, ctx.channel().id().asShortText() + " has joined the room!");
             }
         }
     }
@@ -161,6 +171,15 @@ public class ChatHandler extends ChannelInboundHandlerAdapter {
             return INTENTION_LEAVE_ROOM;
         } else {
             return INTENTION_CHAT;
+        }
+    }
+
+
+    public void onMessageReceived(ChannelId id, String message) {
+
+        if(id != ctx.channel().id())
+        {
+            ctx.writeAndFlush(message);
         }
     }
 }

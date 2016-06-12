@@ -1,4 +1,4 @@
-package com.example;
+package com.example.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -13,11 +13,11 @@ import org.apache.logging.log4j.Logger;
  * Created by harsh on 01/06/16.
  */
 @ChannelHandler.Sharable
-public class LogHandler extends ChannelInboundHandlerAdapter {
+public class InboundLogHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LogManager.getLogger();
 
-    public LogHandler() {
+    public InboundLogHandler() {
         super();
 
         logger.info("Log Handler Constructor");

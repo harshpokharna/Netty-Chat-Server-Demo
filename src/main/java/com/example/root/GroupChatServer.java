@@ -1,5 +1,10 @@
-package com.example;
+package com.example.root;
 
+import com.example.handler.MessageDecoder;
+import com.example.handler.OutboundHandler;
+import com.example.service.GroupChatService;
+import com.example.handler.InboundLogHandler;
+import com.example.handler.GroupChatHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -18,10 +23,10 @@ public class GroupChatServer {
     private static final Logger logger = LogManager.getRootLogger();
 
     // Log Handler
-    private static final LogHandler logHandler = new LogHandler();
+    private static final InboundLogHandler INBOUND_LOG_HANDLER = new InboundLogHandler();
 
-    // MessageDecoderHandler
-    private static final MessageDecoderHandler messageDecoderHandler = new MessageDecoderHandler();
+    // MessageDecoder
+    private static final MessageDecoder MESSAGE_DECODER = new MessageDecoder();
 
     private int port;
 
@@ -40,10 +45,10 @@ public class GroupChatServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addFirst(logHandler);
-                            ch.pipeline().addLast(messageDecoderHandler);
-                            ch.pipeline().addLast(new ChatHandler(groupChatService));
-//                            ch.pipeline().addLast(new OutboundHandler());
+                            ch.pipeline().addLast(INBOUND_LOG_HANDLER);
+                            ch.pipeline().addLast(MESSAGE_DECODER);
+                            ch.pipeline().addLast(new OutboundHandler());
+                            ch.pipeline().addLast(new GroupChatHandler(groupChatService));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)
