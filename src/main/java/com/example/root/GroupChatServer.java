@@ -1,7 +1,7 @@
 package com.example.root;
 
 import com.example.handler.MessageDecoder;
-import com.example.handler.OutboundHandler;
+import com.example.handler.MessageEncoder;
 import com.example.service.GroupChatService;
 import com.example.handler.InboundLogHandler;
 import com.example.handler.GroupChatHandler;
@@ -47,7 +47,7 @@ public class GroupChatServer {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(INBOUND_LOG_HANDLER);
                             ch.pipeline().addLast(MESSAGE_DECODER);
-                            ch.pipeline().addLast(new OutboundHandler());
+                            ch.pipeline().addLast(new MessageEncoder());
                             ch.pipeline().addLast(new GroupChatHandler(groupChatService));
                         }
                     })

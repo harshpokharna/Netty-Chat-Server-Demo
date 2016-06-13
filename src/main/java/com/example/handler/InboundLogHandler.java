@@ -23,16 +23,6 @@ public class InboundLogHandler extends ChannelInboundHandlerAdapter {
         logger.info("Log Handler Constructor");
     }
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-
-        logger.info("Log Handler ChannelRegistered");
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Log Handler ChannelUnRegistered");
-    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

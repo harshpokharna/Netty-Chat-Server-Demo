@@ -22,18 +22,6 @@ public class MessageDecoder extends ChannelInboundHandlerAdapter {
         logger.info("MessageDecoder Constructor");
     }
 
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-
-        logger.info("MessageDecoder ChannelRegistered");
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        logger.info("MessageDecoder ChannelUnRegistered");
-    }
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {

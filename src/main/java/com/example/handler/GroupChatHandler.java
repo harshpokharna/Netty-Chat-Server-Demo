@@ -1,12 +1,9 @@
 package com.example.handler;
 
 import com.example.service.GroupChatService;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.group.ChannelGroup;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.ConcurrentSet;
 import org.apache.logging.log4j.LogManager;
@@ -56,7 +53,7 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
 
         logger.info("Chat Handler ChannelUnregistered");
-        if(roomName!= null) {
+        if (roomName != null) {
             groupChatService.removeChannelHandler(this, roomName);
         }
     }
@@ -87,9 +84,6 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
         logger.debug("GroupChatHandler writeCHatMessageToSelf");
         message = "[ME] --- " + message;
 
-        ByteBuf byteBuf = ctx.channel().alloc().buffer();
-        byteBuf.writeBytes(message.getBytes());
-
         ctx.writeAndFlush(message);
     }
 
@@ -97,12 +91,9 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
         logger.debug("GroupChatHandler writeMessageToOtherChannels");
         message = "[" + ctx.channel().id().asShortText() + "] --- " + message;
 
-        ByteBuf byteBuf = ctx.channel().alloc().buffer();
-        byteBuf.writeBytes(message.getBytes());
-
         ConcurrentSet<MessageListener> messageListeners = new ConcurrentSet<MessageListener>();
 
-        if(roomName!= null){
+        if (roomName != null) {
 
             messageListeners = groupChatService.getActiveChannelHandlers(roomName);
         }
@@ -116,11 +107,7 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
     private void writeMessageToSelf(String message, ChannelHandlerContext ctx) {
         logger.debug("GroupChatHandler writeMessageToSelf");
 
-        ByteBuf byteBuf = ctx.channel().alloc().buffer();
-        byteBuf.writeBytes(message.getBytes());
-
         ctx.writeAndFlush(message);
-
     }
 
     private void handleMessage(String message, int messageIntention, ChannelHandlerContext ctx) {
@@ -174,12 +161,11 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
         }
     }
 
-
     public void onMessageReceived(ChannelId id, String message) {
 
-        if(id != ctx.channel().id())
-        {
+        if (id != ctx.channel().id()) {
             ctx.writeAndFlush(message);
+
         }
     }
 }

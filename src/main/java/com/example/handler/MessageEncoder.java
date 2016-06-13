@@ -12,12 +12,12 @@ import java.net.SocketAddress;
 /**
  * Created by harsh on 03/06/16.
  */
-public class OutboundHandler extends ChannelOutboundHandlerAdapter {
+public class MessageEncoder extends ChannelOutboundHandlerAdapter {
 
     // Log4j
     private static final Logger logger = LogManager.getLogger();
 
-    public OutboundHandler() {
+    public MessageEncoder() {
         super();
 
         logger.info("OutBoundHandler Constructor");

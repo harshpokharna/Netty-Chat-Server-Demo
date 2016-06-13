@@ -1,16 +1,10 @@
 package com.example.service;
 
-import com.example.handler.GroupChatHandler;
 import com.example.handler.MessageListener;
-import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.ConcurrentSet;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,28 +42,31 @@ public class GroupChatService {
         return workerGroup;
     }
 
-    public void addChannelHandler(GroupChatHandler groupChatHandler, String roomName) {
+    public void addChannelHandler(MessageListener messageListener, String roomName) {
 
-        if(activeChannels.containsKey(roomName))
-        {
-            activeChannels.get(roomName).add(groupChatHandler);
-        }else{
+        if (activeChannels.containsKey(roomName)) {
+            activeChannels.get(roomName).add(messageListener);
+        } else {
 
-            ConcurrentSet<GroupChatHandler> handlers = new ConcurrentSet<GroupChatHandler>();
-            handlers.add(groupChatHandler);
+            ConcurrentSet<MessageListener> handlers = new ConcurrentSet<MessageListener>();
+            handlers.add(messageListener);
+            activeChannels.put(roomName, handlers);
         }
     }
 
-    public void removeChannelHandler(GroupChatHandler groupChatHandler, String roomName) {
+    public void removeChannelHandler(MessageListener messageListener, String roomName) {
 
-        if(activeChannels.containsKey(roomName))
-        {
-            activeChannels.get(roomName).remove(groupChatHandler);
+        if (activeChannels.containsKey(roomName)) {
+            activeChannels.get(roomName).remove(messageListener);
+
+            if (activeChannels.get(roomName).isEmpty()) {
+                activeChannels.remove(roomName);
+            }
         }
     }
 
     public ConcurrentSet<MessageListener> getActiveChannelHandlers(String roomName) {
-       return activeChannels.get(roomName);
+        return activeChannels.get(roomName);
     }
 
 }
