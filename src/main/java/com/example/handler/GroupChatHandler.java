@@ -80,14 +80,14 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
         }
     }
 
-    private void writeChatMessageToSelf(ChannelHandlerContext ctx, String message) {
+    private void writeChatMessageToSelf(String message) {
         logger.debug("GroupChatHandler writeCHatMessageToSelf");
         message = "[ME] --- " + message;
 
         ctx.writeAndFlush(message);
     }
 
-    private void writeChatMessageToOtherChannels(ChannelHandlerContext ctx, String message) {
+    private void writeChatMessageToOtherChannels(String message) {
         logger.debug("GroupChatHandler writeMessageToOtherChannels");
         message = "[" + ctx.channel().id().asShortText() + "] --- " + message;
 
@@ -100,11 +100,11 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
 
         for (MessageListener messageListener : messageListeners) {
 
-            messageListener.onMessageReceived(ctx.channel().id(), message);
+            messageListener.onMessageReceived(ctx.channel().id().asShortText(), message);
         }
     }
 
-    private void writeMessageToSelf(String message, ChannelHandlerContext ctx) {
+    private void writeMessageToSelf(String message) {
         logger.debug("GroupChatHandler writeMessageToSelf");
 
         ctx.writeAndFlush(message);
@@ -114,38 +114,38 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
 
         if (isRoomJoined) {
             if (messageIntention == INTENTION_JOIN_ROOM) {
-                writeMessageToSelf("Please leave the room first!", ctx);
+                writeMessageToSelf("Please leave the room first!");
 
             } else if (messageIntention == INTENTION_LEAVE_ROOM) {
                 if (message.substring(6).equals(roomName)) {
                     isRoomJoined = false;
-                    writeMessageToSelf(roomName + " left!", ctx);
-                    writeChatMessageToOtherChannels(ctx, ctx.channel().id().asShortText() + " has left the room!");
+                    writeMessageToSelf(roomName + " left!");
+                    writeChatMessageToOtherChannels(ctx.channel().id().asShortText() + " has left the room!");
                     ctx.close();
 
                 } else {
-                    writeMessageToSelf("Invalid request", ctx);
+                    writeMessageToSelf("Invalid request");
                 }
 
             } else if (messageIntention == INTENTION_CHAT) {
-                writeChatMessageToOtherChannels(ctx, message);
-                writeChatMessageToSelf(ctx, message);
+                writeChatMessageToOtherChannels(message);
+                writeChatMessageToSelf(message);
             }
 
         } else {
             if (messageIntention == INTENTION_LEAVE_ROOM) {
-                writeMessageToSelf("You should join a room first!", ctx);
+                writeMessageToSelf("You should join a room first!");
 
             } else if (messageIntention == INTENTION_CHAT) {
-                writeMessageToSelf("You should join a room first!", ctx);
+                writeMessageToSelf("You should join a room first!");
 
             } else if (messageIntention == INTENTION_JOIN_ROOM) {
                 isRoomJoined = true;
                 roomName = message.substring(5);
 
                 groupChatService.addChannelHandler(this, roomName);
-                writeMessageToSelf(roomName + " joined!", ctx);
-                writeChatMessageToOtherChannels(ctx, ctx.channel().id().asShortText() + " has joined the room!");
+                writeMessageToSelf(roomName + " joined!");
+                writeChatMessageToOtherChannels(ctx.channel().id().asShortText() + " has joined the room!");
             }
         }
     }
@@ -161,11 +161,10 @@ public class GroupChatHandler extends ChannelInboundHandlerAdapter implements Me
         }
     }
 
-    public void onMessageReceived(ChannelId id, String message) {
+    public void onMessageReceived(String id, String message) {
 
-        if (id != ctx.channel().id()) {
+        if (!id.equals(ctx.channel().id().asShortText())) {
             ctx.writeAndFlush(message);
-
         }
     }
 }

@@ -1,8 +1,6 @@
 package com.example.service;
 
 import com.example.handler.MessageListener;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.internal.ConcurrentSet;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,31 +13,18 @@ public class GroupChatService {
 
     private static GroupChatService instance;
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
-
     private ConcurrentMap<String, ConcurrentSet<MessageListener>> activeChannels = new ConcurrentHashMap<String, ConcurrentSet<MessageListener>>();
 
     public static GroupChatService getInstance() {
         if (instance != null) {
             return instance;
         } else {
-            instance = new GroupChatService(new NioEventLoopGroup(), new NioEventLoopGroup());
+            instance = new GroupChatService();
             return instance;
         }
     }
 
-    private GroupChatService(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
-        this.bossGroup = bossGroup;
-        this.workerGroup = workerGroup;
-    }
-
-    public EventLoopGroup getBossGroup() {
-        return bossGroup;
-    }
-
-    public EventLoopGroup getWorkerGroup() {
-        return workerGroup;
+    private GroupChatService() {
     }
 
     public void addChannelHandler(MessageListener messageListener, String roomName) {

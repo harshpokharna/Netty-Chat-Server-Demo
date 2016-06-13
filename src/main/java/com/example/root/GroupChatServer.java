@@ -9,6 +9,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
@@ -28,6 +30,9 @@ public class GroupChatServer {
     // MessageDecoder
     private static final MessageDecoder MESSAGE_DECODER = new MessageDecoder();
 
+    private EventLoopGroup bossGroup = new NioEventLoopGroup();
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+
     private int port;
 
     public GroupChatServer(int port) {
@@ -40,7 +45,7 @@ public class GroupChatServer {
 
         try {
             ServerBootstrap b = new ServerBootstrap(); // (2)
-            b.group(groupChatService.getBossGroup(), groupChatService.getWorkerGroup())
+            b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class) // (3)
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
@@ -64,8 +69,8 @@ public class GroupChatServer {
             // shut down your server.
             f.channel().closeFuture().sync();
         } finally {
-            groupChatService.getBossGroup().shutdownGracefully();
-            groupChatService.getWorkerGroup().shutdownGracefully();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
 
