@@ -1,6 +1,7 @@
 package com.example.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -12,6 +13,7 @@ import java.net.SocketAddress;
 /**
  * Created by harsh on 03/06/16.
  */
+@ChannelHandler.Sharable
 public class MessageEncoder extends ChannelOutboundHandlerAdapter {
 
     // Log4j

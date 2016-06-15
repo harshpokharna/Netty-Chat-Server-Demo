@@ -5,6 +5,7 @@ import com.example.handler.MessageEncoder;
 import com.example.service.GroupChatService;
 import com.example.handler.InboundLogHandler;
 import com.example.handler.GroupChatHandler;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -13,11 +14,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by harsh on 29/05/16.
@@ -32,9 +35,20 @@ public class GroupChatServer {
 
     // MessageDecoder
     private static final MessageDecoder MESSAGE_DECODER = new MessageDecoder();
+    private static final MessageEncoder MESSAGE_ENCODER = new MessageEncoder();
 
-    private EventLoopGroup bossGroup = new NioEventLoopGroup();
-    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+    ThreadFactory bossFactory = new ThreadFactoryBuilder()
+            .setNameFormat("BOSS-%d")
+            .build();
+
+    ThreadFactory workerFactory = new ThreadFactoryBuilder()
+            .setNameFormat("WORKER-%d")
+            .build();
+
+    EventExecutorGroup businessLogicExecutors = new NioEventLoopGroup();
+
+    private EventLoopGroup bossGroup = new NioEventLoopGroup(1, bossFactory);
+    private EventLoopGroup workerGroup = new NioEventLoopGroup(10, workerFactory);
 
     private int port;
 
@@ -55,8 +69,9 @@ public class GroupChatServer {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(INBOUND_LOG_HANDLER);
                             ch.pipeline().addLast(MESSAGE_DECODER);
-                            ch.pipeline().addLast(new MessageEncoder());
-                            ch.pipeline().addLast(new GroupChatHandler(groupChatService));
+                            ch.pipeline().addLast(MESSAGE_ENCODER);
+                            ch.pipeline().addLast(businessLogicExecutors, new GroupChatHandler(groupChatService));
+
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)
