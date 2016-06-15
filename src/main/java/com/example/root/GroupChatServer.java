@@ -1,10 +1,7 @@
 package com.example.root;
 
-import com.example.handler.MessageDecoder;
-import com.example.handler.MessageEncoder;
+import com.example.handler.*;
 import com.example.service.GroupChatService;
-import com.example.handler.InboundLogHandler;
-import com.example.handler.GroupChatHandler;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -18,8 +15,6 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -64,6 +59,7 @@ public class GroupChatServer {
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class) // (3)
+                    .handler(new BossThreadHandler())
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
